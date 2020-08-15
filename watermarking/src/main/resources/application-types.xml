@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="csv" format="excel">
+      <types:shape format="weave"><![CDATA[%dw 2.0
+
+type csv = {|
+  Sheet1?: Array<{|    Id: String,     BrandName: String,     Descreption: String,     Name: String,     OfferPrice: String,     OfferValidDate: String,     OrginalPrice: String  |}>
+|}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#01bd5f7a-cdd9-42b7-a733-efe4436e8143">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="csv"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

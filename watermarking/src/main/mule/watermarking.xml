@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="6a61887e-49ed-4849-a71b-3764b4907203" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="hibiri@tadu" database="muletrainingdb" />
+	</db:config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="03801d12-1c9f-49b9-9183-c9448b03f849" >
+		<file:connection workingDir="C:\Users\tadu\Desktop\file" />
+	</file:config>
+	<flow name="watermarkingFlow" doc:id="8cf2625c-eef1-4695-9fc8-5f6aa56a0f4b" >
+		<db:listener table="product" doc:name="On Table Row" doc:id="5f72075a-3ec9-405c-bd0e-db0537bfab9e" config-ref="Database_Config" watermarkColumn="product_id" idColumn="product_id">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</db:listener>
+		<ee:transform doc:name="Transform Message" doc:id="01bd5f7a-cdd9-42b7-a733-efe4436e8143" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv header = false, separator= '|'
+---
+
+	[{
+		Id: payload.product_id as Number,
+		BrandName: payload.brand_name as String,
+		Descreption: payload.description as String,
+		Name: payload.name as String,
+		OfferPrice: payload.offer_price as Number,
+		OfferValidDate: payload.offer_valid_until as date,
+		OrginalPrice: payload.original_price as Number
+	}]
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="49976a8b-f530-40b3-be96-b4c7bfb6b1ea" config-ref="File_Config" path="C:\Users\tadu\Desktop\file\output\product.csv" mode="APPEND"/>
+	</flow>
+</mule>
