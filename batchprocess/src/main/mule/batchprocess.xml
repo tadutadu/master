@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="bcfca0a3-4e56-41cb-9a08-434578a53ca0" >
+		<file:connection workingDir="C:\Users\tadu\Desktop\file\output" />
+	</file:config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="45f10782-49c2-48fe-9753-3c4bd9a1121f" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="hibiri@tadu" database="muletrainingdb" />
+	</db:config>
+	<file:config name="File_Config1" doc:name="File Config" doc:id="249a00f4-2d86-45e3-a48b-2a6e521bb3db" />
+	<flow name="batchprocessFlow" doc:id="0374e84b-e638-45de-ba0e-3bc37e224cf4" >
+		<scheduler doc:name="Scheduler" doc:id="b2323f9e-eba2-420a-a063-38957ece8aa6" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5000"/>
+			</scheduling-strategy>
+		</scheduler>
+		<file:read doc:name="Read" doc:id="5ad7a351-6b75-4576-b2ef-7f6b1c42f3c7" config-ref="File_Config1" path="C:\Users\tadu\Desktop\file\input\training.csv"/>
+		<ee:transform doc:name="Transform Message" doc:id="6493e12e-4b3a-440b-ac18-ddb2fec0ab24" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+
+	payload map(data, index) -> {
+		ID: data.ID,
+		AreaCode: data.AreaCode,
+		Year: data.Year,
+		Count: data.Count,
+		population: data.Population
+	}
+		
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="8f85b0a2-1a73-4b3b-bfff-efe08613a8f7" message="#[payload]"/>
+		<batch:job jobName="batchprocessBatch_Job" doc:id="0a9d2d71-1e7f-44e5-9545-c05940b3aa4b" blockSize="10">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="ec5e6442-7452-4fae-b2cc-4026008fa280" >
+					<ee:transform doc:name="Transform Message" doc:id="5bff8396-4d54-48cb-930b-9dfbb50b9d73" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	id: payload.ID,
+	space: payload.AreaCode,
+	population: payload.population
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="fec52c14-6bc8-418e-b458-7ad19502e0f9" size="10">
+						<ee:transform doc:name="Transform Message" doc:id="f8cf4d53-31b0-42c0-8d7a-a22e02d828b2" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+	payload map(data, index) -> {
+		id: data.id,
+		space: data.space,
+		population: data.population
+	}
+	
+	]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<file:write doc:name="Write" doc:id="5bf7791a-3440-4d17-82ae-af54deda6d60" path="#['BatchFile' ++ (now() as String {format: 'yyyy-MM-dd-hh-mm-ss'}) ++ (random() *1000) ++ '.txt']" config-ref="File_Config"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="d60e3784-61fd-4beb-9630-4f727d338e6e" message="Bach Job Successfuly completed"/>
+			</batch:on-complete>
+		</batch:job>
+		<file:delete doc:name="Delete" doc:id="beaa4f5d-66f5-45df-8ec1-96b59593ee99" config-ref="File_Config" path="C:\Users\tadu\Desktop\file\input\training.csv"/>
+	</flow>
+</mule>
