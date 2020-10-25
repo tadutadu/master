@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="input1" format="csv">
+      <types:shape format="weave" example="examples/input.csv"><![CDATA[%dw 2.0
+
+type input1 = Array<{|  ID: String,   AreaCode: String,   Year: String,   Count: String,   Population: String|}>
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="true"/>
+        <types:property name="isQuotedString" value="false"/>
+        <types:property name="separator" value=","/>
+      </types:properties>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#6c4f5f8c-c12b-4e57-920a-6eae1c4eca1d">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="input1"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#6493e12e-4b3a-440b-ac18-ddb2fec0ab24">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="input1"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

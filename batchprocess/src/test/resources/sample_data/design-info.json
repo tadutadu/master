@@ -1,0 +1,10 @@
+{
+  "sampleData": {
+    "52f7a204-237b-4b02-a608-5072f5c8b8fc": {
+      "payload": "sample_data/list_object.dwl"
+    },
+    "f8cf4d53-31b0-42c0-8d7a-a22e02d828b2": {
+      "payload": "sample_data/list_object_1.dwl"
+    }
+  }
+}
