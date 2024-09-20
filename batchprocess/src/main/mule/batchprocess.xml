@@ -79,5 +79,6 @@ output application/json
 			</batch:on-complete>
 		</batch:job>
 		<file:delete doc:name="Delete" doc:id="beaa4f5d-66f5-45df-8ec1-96b59593ee99" config-ref="File_Config" path="C:\Users\tadu\Desktop\file\input\training.csv"/>
+		<logger level="INFO" doc:name="Logger" doc:id="37445fc5-e4d4-4818-b56d-6bee409cefc0" message="paylaod: #[payload]"/>
 	</flow>
 </mule>
